@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-03-27T15:01:14.555788",
+  "total_images": 2715,
+  "train_count": 1897,
+  "test_count": 818,
+  "by_category": {
+    "fresh_fruits": {
+      "total": 450,
+      "label": 0,
+      "train": 315,
+      "test": 135
+    },
+    "fresh_vegetables": {
+      "total": 433,
+      "label": 0,
+      "train": 303,
+      "test": 130
+    },
+    "fresh_bread": {
+      "total": 205,
+      "label": 0,
+      "train": 143,
+      "test": 62
+    },
+    "fresh_dairy": {
+      "total": 204,
+      "label": 0,
+      "train": 142,
+      "test": 62
+    },
+    "spoiled_fruits": {
+      "total": 289,
+      "label": 1,
+      "train": 202,
+      "test": 87
+    },
+    "spoiled_vegetables": {
+      "total": 491,
+      "label": 1,
+      "train": 343,
+      "test": 148
+    },
+    "spoiled_bread": {
+      "total": 344,
+      "label": 1,
+      "train": 240,
+      "test": 104
+    },
+    "spoiled_dairy": {
+      "total": 299,
+      "label": 1,
+      "train": 209,
+      "test": 90
+    }
+  }
+}

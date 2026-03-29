@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type check / lint caches
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+Project/best_model.pth
+Project/json/*.json
+Project/Codebase/__pycache__/
+Project/Codebase/*.pth
+
+# Assignment outputs
+Assignments/**/Outputs/
+
+# Large datasets (keep structure, ignore contents)
+Project/Dataset/train/
+Project/Dataset/test/
+Assignments/A4/MNIST/
+
+# Logs
+*.log
