@@ -548,7 +548,7 @@ if image is not None:
     st.divider()
     st.markdown("<h2 class='section-header'>Complete Analysis</h2>", unsafe_allow_html=True)
     
-    tab_arch, tab1, tab2, tab3 = st.tabs(["CNN Architecture", "Color Analysis", "Metrics", "Feature Importance"])
+    tab_arch, tab_params, tab_weights, tab1, tab2, tab3 = st.tabs(["CNN Architecture", "Model Parameters", "Layer Weights", "Color Analysis", "Metrics", "Feature Importance"])
     
     with tab_arch:
         st.markdown("**11-Layer CNN Architecture - Detailed Analysis**")
@@ -731,6 +731,136 @@ if image is not None:
         - **Regularization:** Dropout (30%) prevents overfitting in dense layers
         - **Binary Classification:** Output softmax provides probabilities for Fresh vs. Spoiled
         """)
+    
+    with tab_params:
+        st.markdown("**Model Parameters Detail**")
+        
+        # Layer-wise parameter breakdown
+        layer_params = {
+            'Layer': [
+                'Conv1 (3→8)',
+                'Conv2 (8→16)',
+                'Conv3 (16→32)',
+                'Dense1 (25088→128)',
+                'Dense2 (128→2)',
+                'Total'
+            ],
+            'Filter/Units': ['8 filters', '16 filters', '32 filters', '128 units', '2 units', '-'],
+            'Kernel/Input Size': ['3×3', '3×3', '3×3', '25088', '128', '-'],
+            'Weights': ['216', '1,152', '4,608', '3,211,264', '256', '3,217,496'],
+            'Bias': ['8', '16', '32', '128', '2', '186'],
+            'Total Parameters': ['224', '1,168', '4,640', '3,211,392', '258', '3,217,682']
+        }
+        df_params = pd.DataFrame(layer_params)
+        st.dataframe(df_params, use_container_width=True, hide_index=True)
+        
+        st.markdown("**Architecture Summary:**")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Parameters", "3,217,682", delta=None)
+        with col2:
+            st.metric("Trainable Params", "3,217,682", delta="100%")
+        with col3:
+            st.metric("Non-Trainable", "0", delta="0%")
+        with col4:
+            st.metric("Model Size", "~12.3 MB", delta=None)
+        
+        st.markdown("**Layer Summary:**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.info("📊 **Convolutional Layers:** 3\n- Extract spatial features\n- Learn filters from data")
+        with col2:
+            st.info("🔗 **Dense Layers:** 2\n- Classification head\n- Dimension reduction")
+        with col3:
+            st.info("⚙️ **Activation:** ReLU\n- Non-linearity\n- Faster convergence")
+    
+    with tab_weights:
+        st.markdown("**Layer Weight Values**")
+        
+        st.markdown("**Select a layer to view all weights:**")
+        weight_layer_choice = st.selectbox(
+            "Choose layer:",
+            ['Conv1', 'Conv2', 'Conv3', 'Dense1', 'Dense2'],
+            key='weight_layer_select'
+        )
+        
+        # Get selected layer and extract weights
+        layer_map = {
+            'Conv1': model.conv1,
+            'Conv2': model.conv2,
+            'Conv3': model.conv3,
+            'Dense1': model.dense1,
+            'Dense2': model.dense2
+        }
+        
+        selected_layer = layer_map[weight_layer_choice]
+        weights = selected_layer.weight.detach().cpu().numpy()
+        bias = selected_layer.bias.detach().cpu().numpy() if selected_layer.bias is not None else None
+        
+        st.markdown(f"### {weight_layer_choice} Weights")
+        st.markdown(f"**Weight Shape:** {weights.shape} | **Total Parameters:** {weights.size:,}")
+        
+        if len(weights.shape) == 4:
+            # Conv layer (out_channels, in_channels, H, W)
+            st.markdown(f"- Output Channels: {weights.shape[0]}")
+            st.markdown(f"- Input Channels: {weights.shape[1]}")
+            st.markdown(f"- Kernel Height: {weights.shape[2]}")
+            st.markdown(f"- Kernel Width: {weights.shape[3]}")
+        else:
+            # Dense layer (out_features, in_features)
+            st.markdown(f"- Output Features: {weights.shape[0]}")
+            st.markdown(f"- Input Features: {weights.shape[1]}")
+        
+        # Display weight statistics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Mean", f"{np.mean(weights):.6f}")
+        with col2:
+            st.metric("Std", f"{np.std(weights):.6f}")
+        with col3:
+            st.metric("Min", f"{np.min(weights):.6f}")
+        with col4:
+            st.metric("Max", f"{np.max(weights):.6f}")
+        
+        # Display all weights
+        st.markdown("**All Weight Values:**")
+        
+        if len(weights.shape) == 4:
+            # Conv layer - show each filter
+            col1, col2 = st.columns([1, 2])
+            with col1:
+                filter_idx = st.slider("Select output channel:", 0, weights.shape[0] - 1)
+            
+            st.markdown(f"#### Filter {filter_idx} - All {weights.shape[1]} Input Channels:")
+            filter_weights = weights[filter_idx]  # (in_channels, H, W)
+            
+            for in_ch in range(filter_weights.shape[0]):
+                st.markdown(f"**Input Channel {in_ch}:**")
+                kernel = filter_weights[in_ch]  # (H, W)
+                df_kernel = pd.DataFrame(kernel, columns=[f'Col{i}' for i in range(kernel.shape[1])])
+                st.dataframe(df_kernel, use_container_width=True)
+        
+        else:
+            # Dense layer - show as matrix
+            df_weights = pd.DataFrame(weights)
+            st.markdown(f"**Full Weight Matrix ({weights.shape[0]} outputs × {weights.shape[1]} inputs):**")
+            st.dataframe(df_weights, use_container_width=False)
+        
+        # Display bias
+        if bias is not None:
+            st.markdown("**Bias Values:**")
+            df_bias = pd.DataFrame({'Bias': bias})
+            st.dataframe(df_bias, use_container_width=False)
+        
+        # Weight distribution
+        st.markdown("**Weight Distribution:**")
+        fig, ax = plt.subplots(figsize=(12, 5))
+        ax.hist(weights.flatten(), bins=100, color='#3498db', alpha=0.7, edgecolor='black')
+        ax.set_xlabel('Weight Value', fontweight='bold')
+        ax.set_ylabel('Frequency', fontweight='bold')
+        ax.set_title(f'{weight_layer_choice} - All Weight Values Distribution', fontweight='bold')
+        ax.grid(alpha=0.3)
+        st.pyplot(fig)
     
     with tab1:
         st.markdown("**Color Analysis (HSV Breakdown)**")
