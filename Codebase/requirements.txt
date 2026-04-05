@@ -8,4 +8,5 @@ scikit-learn==1.2.0
 tqdm==4.65.0
 streamlit==1.28.0
 opencv-python==4.8.0.76
+tabulate==0.9.0
 
